@@ -77,3 +77,56 @@ Flop Ratio = (No. of D Flip-Flops) / (Total No. of Cells)
 ```
 ---
 
+## Day 2 — Floorplanning and Introduction to Library Cells
+
+#### Chip Floorplanning — Core Area and Utilisation
+
+Floorplanning is where a design transitions from being a logical netlist to having a physical footprint — it's the stage where you decide how the chip's available area gets divided up and what goes where. Two fundamental metrics guide every floorplanning decision :
+
+- Utilisation Factor = logic area consumed by the netlist ÷ total core area available. Keeping this between 0.5 and 0.6 is common practice — it preserves enough free space for clock buffers, filler cells, and the routing channels that connect everything together.
+
+- Aspect Ratio = core height ÷ core width. When this equals 1, the core is a perfect square; any other value produces a rectangular die, which may be driven by pin placement, packaging constraints, or just fitting the logic better.
+
+#### Pre-Placed Cells and Decoupling Capacitors
+
+- Not every block gets handed over to the automated placement engine — some are too critical or too large to leave to an algorithm. Complex IP blocks like memories, PLLs, and analog circuits are placed manually at this stage, with their positions driven by connectivity, signal flow, and how the power network will reach them.
+- Once these blocks are locked down, decoupling capacitors are placed in the space immediately surrounding them. These capacitors act as on-chip charge reservoirs — when a block switches and briefly pulls extra current, the decap supplies it locally rather than letting the supply voltage droop. The result is a cleaner, more stable power rail right where it matters most.
+
+#### Power Planning: Rings and Mesh
+- A reliable power network needs to deliver clean VDD and VSS to every cell on the chip, no matter where it sits. That means building two complementary structures: power rings that wrap around the core's perimeter to collect current from the I/O pads, and a power mesh that distributes it evenly across the interior through a grid of horizontal and vertical metal stripes on upper routing layers.
+ 
+- Spreading current delivery across multiple paths and metal layers keeps resistance low, which directly limits IR drop — the voltage loss that builds up along long, thin wires. It also reduces current density at any single point, pushing electromigration risk down to acceptable levels across the chip's expected lifetime.
+
+### Lab — Floorplan and Placement
+
+#### Running Floorplan
+
+```tcl
+run_floorplan
+```
+
+After this completes, we can inspect the DEF file that was generated :
+
+```bash
+cd results/floorplan/
+less picorv32a.def
+```
+
+#### Viewing the Floorplan in Magic
+
+```bash
+magic -T /home/vsduser/Desktop/OpenLane/designs/picorv32a/sky130A/libs.tech/magic/sky130A.tech \
+      lef read ../../tmp/merged.nom.lef \
+      def read picorv32a.def &
+```
+
+#### Running Placement
+
+```tcl
+run_placement
+```
+
+Standard cells are legally placed .
+
+---
+
